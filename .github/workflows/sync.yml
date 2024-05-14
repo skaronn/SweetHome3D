@@ -29,7 +29,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Install git-svn command
-        run: sudo apt install git-svn -y
+        run: sudo apt-get install git git-svn -y
 
       - name: Create a sync branch to fetch latest updates from SVN
         run: |
