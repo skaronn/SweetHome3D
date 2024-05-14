@@ -1,0 +1,51 @@
+# This is a Github Action to mirror a SVN trunk to Git repository
+
+name: Synchronize SVN repository with GitHub
+
+# Controls when the workflow will run
+on:
+  # Triggers the workflow on push or pull request events but only for the "main" branch
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+  schedule:
+    # Run once a day.
+    - cron: "0 0 * * *"
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  # This workflow contains a single job called "build"
+  build:
+    # The type of runner that the job will run on
+    runs-on: ubuntu-latest
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v4
+
+      - name: Create a sync branch to fetch latest updates from SVN
+        run: |
+          git checkout -b sync
+          git svn fetch
+          git svn rebase
+
+      - name: Commit changes to sync branch
+        run: |    
+          git add -A
+          git commit -m "mirroring update - $(date '+%Y/%m/%d')"
+          git push
+
+      - name: Merge main branch with sync
+        run: |
+          git checkout main
+          git merge sync
+          git push origin main
+
+      - name:  Delete sync branch
+        run: |
+          git branch -D sync
